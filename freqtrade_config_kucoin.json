@@ -2,7 +2,7 @@
   "api_key": "YOUR_API_KEY_HERE",
   "api_secret": "YOUR_API_SECRET_HERE",
   "exchange": {
-    "name": "binance",
+    "name": "kucoin",
     "ccxt_config": {},
     "ccxt_async_config": {},
     "type": "spot"
