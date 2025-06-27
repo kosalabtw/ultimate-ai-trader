@@ -3,15 +3,15 @@ set -e
 
 echo "Starting Ultimate AI Trader setup..."
 
-# 1. Update system & install dependencies
+# Update system & install dependencies
 apt update && apt upgrade -y
 apt install -y python3 python3-pip python3-venv git docker.io docker-compose ufw fail2ban curl build-essential wget
 
-# 2. Enable and start Docker
+# Enable and start Docker
 systemctl enable docker
 systemctl start docker
 
-# 3. Clone project repo if needed
+# Clone project repo
 if [ ! -d "/opt/ultimate-ai-trader" ]; then
   git clone https://github.com/kosalabtw/ultimate-ai-trader.git /opt/ultimate-ai-trader
 else
@@ -20,9 +20,10 @@ fi
 
 cd /opt/ultimate-ai-trader
 
-# 4. Build and install TA-Lib C library if missing
+# --- TA-Lib C library install (required for Python ta-lib) ---
 if [ ! -f "/usr/lib/libta_lib.so.0.0.0" ]; then
   echo "Installing TA-Lib C library..."
+  apt install -y build-essential wget
   cd /tmp
   wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
   tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -36,24 +37,22 @@ if [ ! -f "/usr/lib/libta_lib.so.0.0.0" ]; then
   ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so
 fi
 
-# 5. Create and activate Python venv
+# --- Python venv and ta-lib Python package ---
 python3 -m venv venv
 source venv/bin/activate
-
-# 6. Upgrade pip and install Python dependencies
 pip install --upgrade pip
 pip install ta-lib
 
-# 7. Setup firewall
+# Setup firewall
 ufw allow ssh
 ufw allow 8080
 ufw --force enable
 
-# 8. Fail2Ban setup
+# Fail2Ban setup (basic)
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# 9. Pull Docker images and start services
+# Pull Docker images and start services
 docker-compose up -d --build
 
-echo "✅ Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
+echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
