@@ -63,4 +63,4 @@ systemctl start fail2ban
 # Pull Docker images and start services
 docker-compose up -d --build
 
-echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
+echo "Setup complete. Access the dashboard
