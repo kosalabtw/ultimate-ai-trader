@@ -31,7 +31,7 @@ make install
 ldconfig
 cd /opt/ultimate-ai-trader
 
-# (Optional) Create and activate Python virtual environment
+# Create and activate Python virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
