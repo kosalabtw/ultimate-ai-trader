@@ -1,21 +1,69 @@
-Starting Ultimate AI Trader setup...
-Hit:1 http://archive.ubuntu.com/ubuntu noble InRelease
-Hit:2 http://security.ubuntu.com/ubuntu noble-security InRelease
-Hit:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease
-Hit:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-2 packages can be upgraded. Run 'apt list --upgradable' to see them.
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-Calculating upgrade... Done
-The following upgrades have been deferred due to phasing:
-  libopeniscsiusr open-iscsi
-0 upgraded, 0 newly installed, 0 to remove and 2 not upgraded.
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-E: Unable to locate package libta-lib0
-E: Unable to locate package libta-lib0-dev
+#!/bin/bash
+set -e
+
+echo "Starting Ultimate AI Trader setup..."
+
+# Update system & install dependencies
+apt update && apt upgrade -y
+apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl build-essential
+
+# Enable and start Docker
+systemctl enable docker
+systemctl start docker
+
+# Clone project repo
+if [ ! -d "/opt/ultimate-ai-trader" ]; then
+  git clone https://github.com/kosalabtw/ultimate-ai-trader.git /opt/ultimate-ai-trader
+else
+  echo "Repo already cloned"
+fi
+
+cd /opt/ultimate-ai-trader
+
+# Install TA-Lib from source (required for Ubuntu 24.04+)
+cd /tmp
+curl -L -O https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+tar -xzf ta-lib-0.4.0-src.tar.gz
+cd ta-lib
+./configure --prefix=/usr
+make
+make install
+cd /opt/ultimate-ai-trader
+
+# Set timezone to UTC
+timedatectl set-timezone UTC
+
+# Create and activate Python virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Upgrade pip and install Python dependencies (including TA-Lib)
+pip install --upgrade pip
+pip install freqtrade ta-lib
+
+# Create user directory for Freqtrade
+freqtrade create-userdir --userdir user_data
+
+# Copy default config
+cp freqtrade_config.json user_data/config.json
+
+# Setup firewall
+ufw allow ssh
+ufw allow 8080
+ufw --force enable
+
+# Fail2Ban setup (basic)
+systemctl enable fail2ban
+systemctl start fail2ban
+
+# Create cronjob for retraining (binance, kucoin, kraken)
+(crontab -l 2>/dev/null; echo "0 2 * * * /opt/ultimate-ai-trader/cronjobs/retrain_daily.sh") | crontab -
+
+# Pull Docker images and start services (if docker-compose.yml exists)
+if [ -f docker-compose.yml ]; then
+  docker-compose up -d --build
+fi
+
+echo "✅ Installation Complete."
+echo "Binance, KuCoin, and Kraken AI trainers are ready."
+echo "Access the dashboard at http://149.102.131.127:8080"
