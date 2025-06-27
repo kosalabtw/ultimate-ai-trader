@@ -23,13 +23,15 @@ cd /opt/ultimate-ai-trader
 # Set timezone to UTC
 timedatectl set-timezone UTC
 
-# Create virtual environment
-pip3 install virtualenv
-virtualenv venv
+# Create and activate Python virtual environment
+python3 -m venv venv
 source venv/bin/activate
 
-# Install Freqtrade
+# Upgrade pip and install Freqtrade in the virtual environment
+pip install --upgrade pip
 pip install freqtrade
+
+# Create user directory for Freqtrade
 freqtrade create-userdir --userdir user_data
 
 # Copy default config
@@ -54,4 +56,4 @@ fi
 
 echo "✅ Installation Complete."
 echo "Binance, KuCoin, and Kraken AI trainers are ready."
-echo "Access the dashboard at http://149.102.131.127:8080"
+echo "Access the dashboard at
