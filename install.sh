@@ -5,7 +5,7 @@ echo "Starting Ultimate AI Trader setup..."
 
 # Update system & install dependencies
 apt update && apt upgrade -y
-apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl
+apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl build-essential libta-lib0 libta-lib0-dev
 
 # Enable and start Docker
 systemctl enable docker
@@ -27,9 +27,9 @@ timedatectl set-timezone UTC
 python3 -m venv venv
 source venv/bin/activate
 
-# Upgrade pip and install Freqtrade in the virtual environment
+# Upgrade pip and install Python dependencies (including TA-Lib)
 pip install --upgrade pip
-pip install freqtrade
+pip install freqtrade ta-lib
 
 # Create user directory for Freqtrade
 freqtrade create-userdir --userdir user_data
@@ -56,4 +56,4 @@ fi
 
 echo "✅ Installation Complete."
 echo "Binance, KuCoin, and Kraken AI trainers are ready."
-echo "Access the dashboard at
+echo "Access the dashboard
