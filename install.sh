@@ -20,7 +20,7 @@ fi
 
 cd /opt/ultimate-ai-trader
 
-# Build and install TA-Lib from source (required for Ubuntu 24.04+)
+# RADICAL FIX: Build and install TA-Lib from source (required for Ubuntu 24.04+)
 cd /tmp
 curl -L -O https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
 tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -45,8 +45,10 @@ pip install freqtrade ta-lib
 # Create user directory for Freqtrade
 freqtrade create-userdir --userdir user_data
 
-# Copy default config
-cp freqtrade_config.json user_data/config.json
+# Copy default config if it exists
+if [ -f freqtrade_config.json ]; then
+  cp freqtrade_config.json user_data/config.json
+fi
 
 # Setup firewall
 ufw allow ssh
@@ -62,6 +64,6 @@ if [ -f docker-compose.yml ]; then
   docker-compose up -d --build
 fi
 
-echo "✅ Installation Complete."
+echo "✅ Radical Installation Complete."
 echo "Binance, KuCoin, and Kraken AI trainers are ready."
 echo "Access the dashboard at http://<YOUR_VM_IP>:8080"
