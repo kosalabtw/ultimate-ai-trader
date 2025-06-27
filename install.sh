@@ -5,7 +5,7 @@ echo "Starting Ultimate AI Trader setup..."
 
 # Update system & install dependencies
 apt update && apt upgrade -y
-apt install -y python3 python3-pip git docker.io docker-compose ufw fail2ban curl python3-venv python3.12-venv
+apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl
 
 # Enable and start Docker
 systemctl enable docker
