@@ -5,7 +5,7 @@ echo "Starting Ultimate AI Trader setup..."
 
 # Update system & install dependencies
 apt update && apt upgrade -y
-apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl build-essential wget
+apt install -y python3 python3-pip git docker.io docker-compose ufw fail2ban curl build-essential wget software-properties-common
 
 # Enable and start Docker
 systemctl enable docker
@@ -19,9 +19,6 @@ else
 fi
 
 cd /opt/ultimate-ai-trader
-
-# Set timezone to UTC
-timedatectl set-timezone UTC
 
 # --- TA-Lib C library install (required for Python ta-lib) ---
 if [ ! -f "/usr/lib/libta_lib.so.0.0.0" ]; then
@@ -39,19 +36,18 @@ if [ ! -f "/usr/lib/libta_lib.so.0.0.0" ]; then
   ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so
 fi
 
-# Create and activate Python virtual environment
-python3 -m venv venv
+# --- Python 3.11 venv and ta-lib Python package ---
+if ! command -v python3.11 >/dev/null 2>&1; then
+  apt install -y software-properties-common
+  add-apt-repository -y ppa:deadsnakes/ppa
+  apt update
+  apt install -y python3.11 python3.11-venv python3.11-dev
+fi
+
+python3.11 -m venv venv
 source venv/bin/activate
-
-# Upgrade pip and install Freqtrade and TA-Lib in the virtual environment
 pip install --upgrade pip
-pip install freqtrade ta-lib
-
-# Create user directory for Freqtrade
-freqtrade create-userdir --userdir user_data
-
-# Copy default config
-cp freqtrade_config.json user_data/config.json
+pip install ta-lib
 
 # Setup firewall
 ufw allow ssh
@@ -62,14 +58,7 @@ ufw --force enable
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Create cronjob for retraining (binance, kucoin, kraken)
-(crontab -l 2>/dev/null; echo "0 2 * * * /opt/ultimate-ai-trader/cronjobs/retrain_daily.sh") | crontab -
+# Pull Docker images and start services
+docker-compose up -d --build
 
-# Pull Docker images and start services (if docker-compose.yml exists)
-if [ -f docker-compose.yml ]; then
-  docker-compose up -d --build
-fi
-
-echo "✅ Installation Complete."
-echo "Binance, KuCoin, and Kraken AI trainers are ready."
-echo "Access the dashboard at http://149.102.131.127:8080"
+echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
