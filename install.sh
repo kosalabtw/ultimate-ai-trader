@@ -49,4 +49,4 @@ docker system prune -af || true
 # Pull Docker images and start services
 docker-compose up -d --build
 
-echo "Setup complete. Access the dashboard at
+echo "Setup complete. Access
