@@ -49,4 +49,4 @@ docker system prune -af || true
 # Pull Docker images and start services
 docker-compose up -d --build
 
-echo "Setup complete. Access
+echo "Setup complete. Access"
