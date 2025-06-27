@@ -1,64 +1,31 @@
-# 1. Install system dependencies
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y build-essential wget curl git python3 python3-pip docker.io docker-compose ufw fail2ban software-properties-common
+#!/bin/bash
+set -e
 
-# 2. Enable and start Docker
-sudo systemctl enable docker
-sudo systemctl start docker
+echo "Starting Ultimate AI Trader setup..."
 
-# 3. Install TA-Lib C library
-cd /tmp
-wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
-tar -xzf ta-lib-0.4.0-src.tar.gz
-cd ta-lib
-./configure --prefix=/usr
-make -j$(nproc)
-sudo make install
-sudo ldconfig
-sudo ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so || true
+# Update system & install dependencies
+apt update && apt upgrade -y
+apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl build-essential wget
 
-# 4. Install Python 3.11 and venv if needed
-if ! command -v python3.11 >/dev/null 2>&1; then
-  sudo apt install -y software-properties-common
-  sudo add-apt-repository -y ppa:deadsnakes/ppa
-  sudo apt update
-  sudo apt install -y python3.11 python3.11-venv python3.11-dev
-fi
+# Enable and start Docker
+systemctl enable docker
+systemctl start docker
 
-# 5. Clone your repo if needed
+# Clone project repo
 if [ ! -d "/opt/ultimate-ai-trader" ]; then
-  sudo git clone https://github.com/kosalabtw/ultimate-ai-trader.git /opt/ultimate-ai-trader
-  sudo chown -R $USER:$USER /opt/ultimate-ai-trader
+  git clone https://github.com/kosalabtw/ultimate-ai-trader.git /opt/ultimate-ai-trader
+else
+  echo "Repo already cloned"
 fi
 
 cd /opt/ultimate-ai-trader
 
-# 6. Create and activate Python 3.11 venv
-python3.11 -m venv venv
-source venv/bin/activate
+# Set timezone to UTC
+timedatectl set-timezone UTC
 
-# 7. Install Python dependencies
-pip install --upgrade pip
-pip install ta-lib
-
-# 8. Setup firewall
-sudo ufw allow ssh
-sudo ufw allow 8080
-sudo ufw --force enable
-
-# 9. Fail2Ban setup
-sudo systemctl enable fail2ban
-sudo systemctl start fail2ban
-
-# 10. Pull Docker images and start services
-sudo docker-compose up -d --build
-
-echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"# ...existing code...
-
-# Install TA-Lib C library if not present
-if [ ! -f "/usr/lib/libta_lib.so" ]; then
+# --- TA-Lib C library install (required for Python ta-lib) ---
+if [ ! -f "/usr/lib/libta_lib.so.0.0.0" ]; then
   echo "Installing TA-Lib C library..."
-  apt install -y build-essential wget
   cd /tmp
   wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
   tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -68,20 +35,41 @@ if [ ! -f "/usr/lib/libta_lib.so" ]; then
   make install
   ldconfig
   cd /opt/ultimate-ai-trader
-  ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so || true
+  ln -sf /usr/lib/libta_lib.so.0.0.0 /usr/lib/libta_lib.so
+  ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so
 fi
 
-# Install Python 3.11 and venv if needed
-if ! command -v python3.11 >/dev/null 2>&1; then
-  apt install -y software-properties-common
-  add-apt-repository -y ppa:deadsnakes/ppa
-  apt update
-  apt install -y python3.11 python3.11-venv python3.11-dev
-fi
-
-python3.11 -m venv venv
+# Create and activate Python virtual environment
+python3 -m venv venv
 source venv/bin/activate
-pip install --upgrade pip
-pip install ta-lib
 
-# ...rest of your script...
+# Upgrade pip and install Freqtrade and TA-Lib in the virtual environment
+pip install --upgrade pip
+pip install freqtrade ta-lib
+
+# Create user directory for Freqtrade
+freqtrade create-userdir --userdir user_data
+
+# Copy default config
+cp freqtrade_config.json user_data/config.json
+
+# Setup firewall
+ufw allow ssh
+ufw allow 8080
+ufw --force enable
+
+# Fail2Ban setup (basic)
+systemctl enable fail2ban
+systemctl start fail2ban
+
+# Create cronjob for retraining (binance, kucoin, kraken)
+(crontab -l 2>/dev/null; echo "0 2 * * * /opt/ultimate-ai-trader/cronjobs/retrain_daily.sh") | crontab -
+
+# Pull Docker images and start services (if docker-compose.yml exists)
+if [ -f docker-compose.yml ]; then
+  docker-compose up -d --build
+fi
+
+echo "✅ Installation Complete."
+echo "Binance, KuCoin, and Kraken AI trainers are ready."
+echo "Access the dashboard at http://149.102.131.127:8080"
