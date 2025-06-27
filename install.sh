@@ -56,4 +56,4 @@ fi
 
 echo "✅ Installation Complete."
 echo "Binance, KuCoin, and Kraken AI trainers are ready."
-echo "Access the dashboard at http://149.102.131.127:8080"
+echo "Access the dashboard at
