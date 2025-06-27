@@ -5,7 +5,7 @@ echo "Starting Ultimate AI Trader setup..."
 
 # Update system & install dependencies
 apt update && apt upgrade -y
-apt install -y python3 python3-pip git docker.io docker-compose ufw fail2ban curl build-essential python3-venv python3.12-venv
+apt install -y python3 python3-pip git docker.io docker-compose ufw fail2ban curl build-essential software-properties-common
 
 # Enable and start Docker
 systemctl enable docker
@@ -20,10 +20,9 @@ fi
 
 cd /opt/ultimate-ai-trader
 
-# Ensure TA-Lib C library is installed (skip if already installed)
-if ! ldconfig -p | grep -q libta_lib; then
-  echo "Building TA-Lib C library from source..."
-  apt install -y build-essential curl
+# Install TA-Lib C library if not present
+if [ ! -f "/usr/lib/libta_lib.so" ]; then
+  echo "Installing TA-Lib C library..."
   cd /tmp
   curl -L -O https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
   tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -33,17 +32,24 @@ if ! ldconfig -p | grep -q libta_lib; then
   make install
   ldconfig
   cd /opt/ultimate-ai-trader
-else
-  echo "TA-Lib C library already installed."
+  # Symlink for Ubuntu 24.04 linker
+  ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so || true
 fi
 
-# Create and activate Python virtual environment
-python3 -m venv venv
+# Install Python 3.11 from deadsnakes PPA if not present
+if ! command -v python3.11 >/dev/null 2>&1; then
+  apt install -y software-properties-common
+  add-apt-repository -y ppa:deadsnakes/ppa
+  apt update
+  apt install -y python3.11 python3.11-venv python3.11-dev
+fi
+
+# Create and activate Python 3.11 virtual environment
+python3.11 -m venv venv
 source venv/bin/activate
 
-# Upgrade pip and install Python dependencies (including TA-Lib)
 pip install --upgrade pip
-pip install freqtrade ta-lib
+pip install ta-lib freqtrade
 
 # Setup firewall
 ufw allow ssh
@@ -57,4 +63,4 @@ systemctl start fail2ban
 # Pull Docker images and start services
 docker-compose up -d --build
 
-echo "Setup complete. Access the dashboard at http://<vscode_annotation details='%5B%7B%22title%22%3A%22hardcoded
+echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
