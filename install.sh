@@ -3,7 +3,7 @@ set -e
 
 echo "Starting Ultimate AI Trader setup..."
 
-# Update system & install dependencies
+# Update system & install dependencies (including TA-Lib build deps)
 apt update && apt upgrade -y
 apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl build-essential libta-lib0 libta-lib0-dev
 
@@ -46,9 +46,6 @@ ufw --force enable
 systemctl enable fail2ban
 systemctl start fail2ban
 
-# Create cronjob for retraining (binance, kucoin, kraken)
-(crontab -l 2>/dev/null; echo "0 2 * * * /opt/ultimate-ai-trader/cronjobs/retrain_daily.sh") | crontab -
-
 # Pull Docker images and start services (if docker-compose.yml exists)
 if [ -f docker-compose.yml ]; then
   docker-compose up -d --build
@@ -56,4 +53,4 @@ fi
 
 echo "✅ Installation Complete."
 echo "Binance, KuCoin, and Kraken AI trainers are ready."
-echo "Access the dashboard
+echo "Access the dashboard at http://149.102.131.127:8080"
