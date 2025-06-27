@@ -5,7 +5,7 @@ echo "Starting Ultimate AI Trader setup..."
 
 # Update system & install dependencies
 apt update && apt upgrade -y
-apt install -y python3 python3-pip python3-venv python3.12-venv git docker.io docker-compose ufw fail2ban curl build-essential
+apt install -y python3 python3-pip git docker.io docker-compose ufw fail2ban curl build-essential python3-venv python3.12-venv
 
 # Enable and start Docker
 systemctl enable docker
@@ -20,7 +20,7 @@ fi
 
 cd /opt/ultimate-ai-trader
 
-# Install TA-Lib from source (required for Ubuntu 24.04+)
+# Build and install TA-Lib from source (required for Ubuntu 24.04+)
 cd /tmp
 curl -L -O https://sourceforge.net/projects/ta-lib/files/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
 tar -xzf ta-lib-0.4.0-src.tar.gz
@@ -28,6 +28,7 @@ cd ta-lib
 ./configure --prefix=/usr
 make
 make install
+ldconfig
 cd /opt/ultimate-ai-trader
 
 # Set timezone to UTC
