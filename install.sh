@@ -31,7 +31,7 @@ make install
 ldconfig
 cd /opt/ultimate-ai-trader
 
-# Create and activate Python virtual environment
+# (Optional) Create and activate Python virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
@@ -51,4 +51,4 @@ systemctl start fail2ban
 # Pull Docker images and start services
 docker-compose up -d --build
 
-echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
+echo "Setup complete. Access the dashboard
