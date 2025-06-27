@@ -20,7 +20,7 @@ fi
 
 cd /opt/ultimate-ai-trader
 
-# Install TA-Lib C library if not present
+# --- TA-Lib C library install (required for Python ta-lib) ---
 if [ ! -f "/usr/lib/libta_lib.so" ]; then
   echo "Installing TA-Lib C library..."
   cd /tmp
@@ -36,7 +36,7 @@ if [ ! -f "/usr/lib/libta_lib.so" ]; then
   ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so || true
 fi
 
-# Install Python 3.11 from deadsnakes PPA if not present
+# --- Python 3.11 venv and ta-lib Python package ---
 if ! command -v python3.11 >/dev/null 2>&1; then
   apt install -y software-properties-common
   add-apt-repository -y ppa:deadsnakes/ppa
@@ -44,12 +44,11 @@ if ! command -v python3.11 >/dev/null 2>&1; then
   apt install -y python3.11 python3.11-venv python3.11-dev
 fi
 
-# Create and activate Python 3.11 virtual environment
 python3.11 -m venv venv
 source venv/bin/activate
 
 pip install --upgrade pip
-pip install ta-lib freqtrade
+pip install ta-lib
 
 # Setup firewall
 ufw allow ssh
@@ -63,4 +62,4 @@ systemctl start fail2ban
 # Pull Docker images and start services
 docker-compose up -d --build
 
-echo "Setup complete. Access the dashboard
+echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
