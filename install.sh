@@ -1,11 +1,16 @@
 #!/bin/bash
 set -e
 
+INSTALLER_VERSION="1.0.0"
+CREATED_DATE="2024-06-27"
+
+echo "Ultimate AI Trader Installer version: $INSTALLER_VERSION"
+echo "Script created on: $CREATED_DATE"
 echo "Starting Ultimate AI Trader setup..."
 
 # Update system & install dependencies
 apt update && apt upgrade -y
-apt install -y python3 python3-pip python3-venv git docker.io docker-compose ufw fail2ban curl build-essential wget
+apt install -y python3 python3-pip git docker.io docker-compose ufw fail2ban curl
 
 # Enable and start Docker
 systemctl enable docker
@@ -19,29 +24,6 @@ else
 fi
 
 cd /opt/ultimate-ai-trader
-
-# --- TA-Lib C library install (required for Python ta-lib) ---
-if [ ! -f "/usr/lib/libta_lib.so.0.0.0" ]; then
-  echo "Installing TA-Lib C library..."
-  apt install -y build-essential wget
-  cd /tmp
-  wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
-  tar -xzf ta-lib-0.4.0-src.tar.gz
-  cd ta-lib
-  ./configure --prefix=/usr
-  make -j$(nproc)
-  make install
-  ldconfig
-  cd /opt/ultimate-ai-trader
-  ln -sf /usr/lib/libta_lib.so.0.0.0 /usr/lib/libta_lib.so
-  ln -sf /usr/lib/libta_lib.so /usr/lib/x86_64-linux-gnu/libta_lib.so
-fi
-
-# --- Python venv and ta-lib Python package ---
-python3 -m venv venv
-source venv/bin/activate
-pip install --upgrade pip
-pip install ta-lib
 
 # Setup firewall
 ufw allow ssh
