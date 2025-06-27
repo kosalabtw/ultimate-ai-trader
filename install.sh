@@ -5,8 +5,8 @@ INSTALLER_VERSION="1.0.0"
 CREATED_DATE="2024-06-27"
 
 # Get file creation or modification time
-CREATED_TIME=$(stat -c %w "$0")
-if [ "$CREATED_TIME" = "-" ]; then
+CREATED_TIME=$(stat -c %w "$0" 2>/dev/null)
+if [ "$CREATED_TIME" = "-" ] || [ -z "$CREATED_TIME" ]; then
   CREATED_TIME=$(stat -c %y "$0")
 fi
 
@@ -42,7 +42,11 @@ ufw --force enable
 systemctl enable fail2ban
 systemctl start fail2ban
 
+# Clean up old containers and orphans to avoid Docker Compose volume errors
+docker-compose down --remove-orphans || true
+docker system prune -af || true
+
 # Pull Docker images and start services
 docker-compose up -d --build
 
-echo "Setup complete. Access the dashboard at http://<YOUR_VM_IP>:8080"
+echo "Setup complete. Access the dashboard at
