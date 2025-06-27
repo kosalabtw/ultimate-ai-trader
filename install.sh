@@ -13,6 +13,7 @@ fi
 echo "Ultimate AI Trader Installer version: $INSTALLER_VERSION"
 echo "Script created on: $CREATED_DATE"
 echo "Script file creation time: $CREATED_TIME"
+echo "Script run at: $(date)"
 echo "Starting Ultimate AI Trader setup..."
 
 # Update system & install dependencies
