@@ -57,6 +57,9 @@ ufw --force enable
 systemctl enable fail2ban
 systemctl start fail2ban
 
+# Create cronjob for retraining (binance, kucoin, kraken)
+(crontab -l 2>/dev/null; echo "0 2 * * * /opt/ultimate-ai-trader/cronjobs/retrain_daily.sh") | crontab -
+
 # Pull Docker images and start services (if docker-compose.yml exists)
 if [ -f docker-compose.yml ]; then
   docker-compose up -d --build
